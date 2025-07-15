@@ -259,7 +259,7 @@ import { createReactAgent } from "@langchain/langgraph/prebuilt";
 
 // Cache agents to avoid re-creating them repeatedly
 const llm = new ChatGoogleGenerativeAI({
-    apiKey: import.meta.env.VITE_GOOGLE_KEY,
+    apiKey: "AIzaSyAsvrav7mUPSjVQ6V3HykGtapExiYFmOdU",
     model: "models/gemini-2.0-flash",
     temperature: 0,
   });
