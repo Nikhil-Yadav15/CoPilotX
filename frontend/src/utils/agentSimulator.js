@@ -234,15 +234,75 @@ const agentResponses = {
   }
 };
 
-export const simulateAgentResponse = (agent, idea) => {
-  return new Promise((resolve) => {
-    // Simulate API delay
-    const delay = Math.random() * 2000 + 1000; // 1-3 seconds
-    
-    setTimeout(() => {
-      const responses = agentResponses[agent]?.responses || [`${agent} analysis for: ${idea}`];
-      const randomResponse = responses[Math.floor(Math.random() * responses.length)];
-      resolve(randomResponse);
-    }, delay);
+// async function runSupervisor(idea) {
+//   const finalOutput = {};
+
+//   for (const [role, agent] of Object.entries(agents)) {
+//     const result = await agent.invoke({
+//       messages: [{ role: "user", content: idea }]
+//     });
+//     const content = result.messages.slice(-1)[0].content;
+//     finalOutput[role] = { responses: [content] };
+//   }
+
+//   return finalOutput;
+// }
+
+// (async () => {
+//   const idea = "Build a mobile platform that connects urban consumers directly with local farmers.";
+//   const plan = await runSupervisor(idea);
+//   console.log(JSON.stringify(plan, null, 2));
+// })();
+
+import { ChatGoogleGenerativeAI } from "@langchain/google-genai";
+import { createReactAgent } from "@langchain/langgraph/prebuilt";
+
+// Cache agents to avoid re-creating them repeatedly
+const llm = new ChatGoogleGenerativeAI({
+    apiKey: process.env.GOOGLE_KEY,
+    model: "models/gemini-2.0-flash",
+    temperature: 0,
   });
+
+const agentPrompts = {
+  CEO: `You are the CEO of a startup. Provide strategic vision, market opportunity, go-to-market strategy, and key risks.`,
+  CTO: `You are the CTO of a startup. Describe the tech stack, MVP roadmap, scaling strategy, and security architecture.`,
+  CMO: `You are the CMO of a startup. Provide brand identity, digital marketing, launch campaign strategy, and retention ideas.`,
+  CFO: `You are the CFO of a startup. Outline revenue streams, financial projections, funding strategy, and unit economics.`,
 };
+
+const agentCache = {};
+
+export const simulateAgentResponse = async (agent, idea) => {
+  if (!agentCache[agent]) {
+    agentCache[agent] = await createReactAgent({
+      llm,
+      tools: [],
+      name: agent,
+      prompt: agentPrompts[agent] || `You are the ${agent} of a startup.`,
+    });
+  }
+
+  const executor = agentCache[agent];
+
+  const result = await executor.invoke({
+    messages: [{ role: "user", content: idea }],
+  });
+
+  const content = result.messages.at(-1).content;
+  return content || `${agent} has no response.`;
+};
+
+
+// export const simulateAgentResponse = (agent, idea) => {
+//   return new Promise((resolve) => {
+//     // Simulate API delay
+//     const delay = Math.random() * 2000 + 1000; // 1-3 seconds
+    
+//     setTimeout(() => {
+//       const responses = agentResponses[agent]?.responses || [`${agent} analysis for: ${idea}`];
+//       const randomResponse = responses[Math.floor(Math.random() * responses.length)];
+//       resolve(randomResponse);
+//     }, delay);
+//   });
+// };
