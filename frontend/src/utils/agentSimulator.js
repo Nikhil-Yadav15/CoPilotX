@@ -258,10 +258,7 @@ import { ChatGoogleGenerativeAI } from "@langchain/google-genai";
 import { createReactAgent } from "@langchain/langgraph/prebuilt";
 
 const conversationHistory = {};
-console.log("Api key: ", import.meta.env.VITE_GOOGLE_KEY);
-// Cache agents to avoid re-creating them repeatedly
 const llm = new ChatGoogleGenerativeAI({
-    // apiKey: "AIzaSyAsvrav7mUPSjVQ6V3HykGtapExiYFmOdU",
     apiKey: import.meta.env.VITE_GOOGLE_KEY,
     model: "models/gemini-2.0-flash",
     temperature: 0,
@@ -276,7 +273,7 @@ const agentPrompts = {
 
 const agentCache = {};
 
-export const simulateAgentResponse = async (agent, idea, threadId = "default") => {
+export const simulateAgentResponse = async (agent, idea, sessionId = "default") => {
   const agentKey = `${agent}-${sessionId}`;
   if (!agentCache[agentKey]) {
     agentCache[agentKey] = await createReactAgent({
