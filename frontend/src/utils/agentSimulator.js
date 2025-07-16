@@ -256,10 +256,13 @@ const agentResponses = {
 
 import { ChatGoogleGenerativeAI } from "@langchain/google-genai";
 import { createReactAgent } from "@langchain/langgraph/prebuilt";
-
+import { MemorySaver } from "@langchain/langgraph";
+const memory = new MemorySaver();
+console.log("Api key: ", import.meta.env.VITE_GOOGLE_KEY);
 // Cache agents to avoid re-creating them repeatedly
 const llm = new ChatGoogleGenerativeAI({
-    apiKey: "AIzaSyAsvrav7mUPSjVQ6V3HykGtapExiYFmOdU",
+    // apiKey: "AIzaSyAsvrav7mUPSjVQ6V3HykGtapExiYFmOdU",
+    apiKey: import.meta.env.VITE_GOOGLE_KEY,
     model: "models/gemini-2.0-flash",
     temperature: 0,
   });
@@ -273,21 +276,26 @@ const agentPrompts = {
 
 const agentCache = {};
 
-export const simulateAgentResponse = async (agent, idea) => {
+export const simulateAgentResponse = async (agent, idea, threadId = "default") => {
   if (!agentCache[agent]) {
     agentCache[agent] = await createReactAgent({
       llm,
       tools: [],
       name: agent,
       prompt: agentPrompts[agent] || `You are the ${agent} of a startup.`,
+      checkpointSaver: memory,
     });
   }
 
   const executor = agentCache[agent];
 
-  const result = await executor.invoke({
-    messages: [{ role: "user", content: idea }],
-  });
+  // const result = await executor.invoke({
+  //   messages: [{ role: "user", content: idea }],
+  // });
+    const result = await executor.invoke(
+    { messages: [{ role: "user", content: idea }] },
+    { configurable: { thread_id: threadId } }
+  );
 
   const content = result.messages.at(-1).content;
   return content || `${agent} has no response.`;
