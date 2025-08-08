@@ -9,7 +9,7 @@ const Footer = ({ darkMode, toggleDarkMode }) => {
           
           <div className="flex items-center space-x-4">
             <div className="text-xs text-gray-500">
-              Powered by AI • Futuristic Design
+              Smart Tools for Smarter Founders
             </div>
             <button
               onClick={toggleDarkMode}
